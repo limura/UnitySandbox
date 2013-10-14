@@ -3,20 +3,40 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class World : MonoBehaviour {
-
+	
+	/// <summary>
+	/// 盤面の横幅
+	/// </summary>
   	public int width = 50;
+	/// <summary>
+	/// 盤面の縦幅
+	/// </summary>
   	public int height = 50;
+	/// <summary>
+	/// 初期の盤面に存在するcellの割合[%]
+	/// </summary>
  	public int first_cell_percent = 40;
+	/// <summary>
+	/// ターンの更新間隔[ミリ秒？]
+	/// </summary>
 	public int interval = 20;
+	/// <summary>
+	/// cell のプレハブ
+	/// </summary>
   	public GameObject cellPrefab = null;
+	/// <summary>
+	/// 現在の盤面
+	/// </summary>
   	GameObject[] m_CellMap = null;
 	
+	// 新しいcellを作って返します.
 	GameObject CreateNewCell(int x, int y, Quaternion prev_rotation)
 	{
 		GameObject obj = Instantiate(cellPrefab, new Vector3((x - width / 2.0f) * 1.5f, 0.0f, (y - height / 2.0f) * 1.5f), prev_rotation) as GameObject;
 		return obj;
 	}
 	
+	// cell に死ぬように司令します.
 	void DestroyCell(GameObject[] cellMap, int x, int y)
 	{
 		GameObject obj = cellMap[x + y * width];
@@ -51,7 +71,8 @@ public class World : MonoBehaviour {
 			}
         }
 	}
-
+	
+	// その位置のcellが存在するかどうかを取得します.
 	bool GetCellStatus(GameObject[] cellMap, int x, int y)
     {
     	if( x < 0 || x >= width || y < 0 || y >= height || (x + y * width) > cellMap.Length )
@@ -60,7 +81,8 @@ public class World : MonoBehaviour {
         }
     	return cellMap[x + y * width] != null;
     }
-
+	
+	// Cellが居るなら n に1を加えて返します
 	int AddIfCellAlive(GameObject[] cellMap, int x, int y, int n)
     {
     	if(GetCellStatus(cellMap, x, y))
@@ -69,7 +91,8 @@ public class World : MonoBehaviour {
         }
     	return n;
     }
-
+	
+	// 次のターンでそのマスにcellが存在するかどうかを取得します.
 	bool IsAlive(GameObject[] cellMap, int x, int y)
   	{
       	int n = 0;
@@ -88,9 +111,11 @@ public class World : MonoBehaviour {
       	}
       	return true;
   	}
-
+	
+	// cellの状態を１ターン分更新します.
   	void CellUpdate()
   	{
+		// 怪しく現在の回転状態を拾ってきます(後で新規に作成されるcellが同じ角度から生成できるようにするためです)
 		Quaternion prev_rotation = Quaternion.identity;
 		foreach(GameObject obj in m_CellMap)
 		{
@@ -100,14 +125,13 @@ public class World : MonoBehaviour {
 				break;
 			}
 		}
-		
+
+		// 新しく GameObject[] を作ってそちらに新しい状態を生成します.
       	GameObject[] newCellMap = new GameObject[width * height];
-		int count = 0;
       	for(int n = 0; n < newCellMap.Length; n++)
       	{
           	if(IsAlive(m_CellMap, n % width, n / width))
           	{
-				count++;
 				if(m_CellMap[n] == null)
 				{
 					newCellMap[n] = CreateNewCell(n % width, n / width, prev_rotation);
@@ -130,7 +154,8 @@ public class World : MonoBehaviour {
     }
 
   	// Update is called once per frame
-	void Update () {
+	void Update ()
+	{
     	if (Time.frameCount % interval == 0)
         {
         	CellUpdate();
