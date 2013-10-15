@@ -161,7 +161,7 @@ public class World : MonoBehaviour {
 			selector.SetActive(false);
 			return;
 		}
-		selector.transform.position = new Vector3((pos.x - width / 2.0f + 0.5f) * cell_distance, 0.0f, (pos.y - height / 2.0f + 0.5f) * cell_distance);
+		selector.transform.position = new Vector3((pos.x - width / 2.0f) * cell_distance, 0.0f, (pos.y - height / 2.0f) * cell_distance);
 		selector.SetActive(true);
 		
 		Quaternion prev_rotation = GetCellRotation();
