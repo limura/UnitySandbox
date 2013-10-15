@@ -35,6 +35,10 @@ public class World : MonoBehaviour {
 	// セレクタのGameObject
 	public GameObject selector = null;
 	
+	// グラフ表示用の画面？みたいなもん？
+	GraphUtil m_Graph = null;
+	List<int> m_CellCountLog = null;
+	
 	// 新しいcellを作って返します.
 	GameObject CreateNewCell(int x, int y, Quaternion prev_rotation)
 	{
@@ -62,6 +66,10 @@ public class World : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
 	{
+		m_Graph = new GraphUtil(100, 50);
+		Color c = new Color(0, 0, 0, 0);
+		m_Graph.Clear(c);
+		m_CellCountLog = new List<int>();
     	m_CellMap = new GameObject[width * height];
 		
 		for(int n = 0; n < m_CellMap.Length; ++n)
@@ -229,6 +237,43 @@ public class World : MonoBehaviour {
 		
       	m_CellMap = newCellMap;
     }
+	
+	void UpdateGraphData()
+	{
+		if(m_CellCountLog.Count >= m_Graph.Width)
+		{
+			m_CellCountLog.RemoveRange(0, m_CellCountLog.Count - m_Graph.Width + 1);
+		}
+		int count = 0;
+		for(int n = 0; n < m_CellMap.Length; ++n)
+		{
+			if(m_CellMap[n] != null)
+			{
+				count++;
+			}
+		}
+		m_CellCountLog.Add (count);
+	}
+	
+	void RenderCellCountGraph()
+	{
+		m_Graph.Clear(new Color(0, 0, 0, 0));
+		List<Vector2> point_list = new List<Vector2>();
+		int max = 0;
+		foreach(int count in m_CellCountLog)
+		{
+			if(count > max)
+			{
+				max = count;
+			}
+		}
+		for(int x = 0; x < m_CellCountLog.Count; ++x)
+		{
+			point_list.Add(new Vector2(x, (float)m_CellCountLog[x] * m_Graph.Height / max));
+		}
+		m_Graph.DrawLines(Color.red, point_list);
+		Graphics.DrawTexture(new Rect(10, 10, 100, 50), m_Graph.GetTexture2D());
+	}
 
   	// Update is called once per frame
 	void Update ()
@@ -236,7 +281,17 @@ public class World : MonoBehaviour {
     	if (Time.frameCount % interval == 0)
         {
         	CellUpdate();
+			UpdateGraphData();
         }
 		UpdateMousePosCell();
+	}
+	
+	void OnGUI()
+	{
+		if(Event.current.type == EventType.Repaint)
+		{
+			// この状態でないと Graphics.DrawTexture() はできないそうな
+			RenderCellCountGraph();
+		}
 	}
 }
