@@ -134,16 +134,22 @@ public class World : MonoBehaviour {
 		{
 			return null;
 		}
+		// 当たった場所は point で取れるっぽい
 		float x = hit.point.x;
 		float y = hit.point.z;
-		if(x < (-1 * width / 2.0f * cell_distance) || x > width / 2.0f * cell_distance
-			|| y < (-1 * height / 2.0f * cell_distance) || y > height / 2.0f * cell_distance)
+		// cell_distance の格子状な座標軸に正規化？します
+		x /= cell_distance;
+		y /= cell_distance;
+		x += (width / 2.0f) + 0.5f;
+		y += (height / 2.0f) + 0.5f;
+
+		Position pos = new Position();
+		pos.x = (int)x;
+		pos.y = (int)y;
+		if(pos.x < 0 || pos.x >= width || pos.y < 0 || pos.y >= height)
 		{
 			return null;
 		}
-		Position pos = new Position();
-		pos.x = (int)(x / cell_distance + width / 2.0f + cell_distance / 2.0f);
-		pos.y = (int)(y / cell_distance + width / 2.0f + cell_distance / 2.0f);
 		return pos;
 	}
 	
@@ -155,7 +161,7 @@ public class World : MonoBehaviour {
 			selector.SetActive(false);
 			return;
 		}
-		selector.transform.position = new Vector3((pos.x - width / 2.0f) * cell_distance, 0.0f, (pos.y - height / 2.0f) * cell_distance);
+		selector.transform.position = new Vector3((pos.x - width / 2.0f + 0.5f) * cell_distance, 0.0f, (pos.y - height / 2.0f + 0.5f) * cell_distance);
 		selector.SetActive(true);
 		
 		Quaternion prev_rotation = GetCellRotation();
