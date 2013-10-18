@@ -66,9 +66,7 @@ public class World : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
 	{
-		m_Graph = new GraphUtil(100, 50);
-		Color c = new Color(0, 0, 0, 0);
-		m_Graph.Clear(c);
+		m_Graph = new GraphUtil(500, 250);
 		m_CellCountLog = new List<int>();
     	m_CellMap = new GameObject[width * height];
 		
@@ -267,12 +265,13 @@ public class World : MonoBehaviour {
 				max = count;
 			}
 		}
+		max += 1;
 		for(int x = 0; x < m_CellCountLog.Count; ++x)
 		{
 			point_list.Add(new Vector2(x, (float)m_CellCountLog[x] * m_Graph.Height / max));
 		}
 		m_Graph.DrawLines(Color.red, point_list);
-		Graphics.DrawTexture(new Rect(10, 10, 100, 50), m_Graph.GetTexture2D());
+		Graphics.DrawTexture(new Rect(10, 10, m_Graph.Width, m_Graph.Height), m_Graph.GetTexture2D());
 	}
 
   	// Update is called once per frame
@@ -281,9 +280,9 @@ public class World : MonoBehaviour {
     	if (Time.frameCount % interval == 0)
         {
         	CellUpdate();
-			UpdateGraphData();
         }
 		UpdateMousePosCell();
+		UpdateGraphData();
 	}
 	
 	void OnGUI()

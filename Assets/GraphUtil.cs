@@ -2,10 +2,21 @@
 using System.Collections;
 using System.Collections.Generic;
 
+/// <summary>
+/// 2D画像に線を引いたりするためのもの
+/// </summary>
 public class GraphUtil {
+	/// <summary>
+	/// 保持しているテクスチャ
+	/// </summary>
 	Texture2D m_Texture2D = null;
+	/// <summary>
+	/// m_Texture2D に変更を加えたか否か
+	/// 変更を加えたならば 使う前に Apply() する必要があるため それを覚えておきます
+	/// </summary>
 	bool m_Modified = false;
 	
+	// swap 関数
 	static void Swap<T>(ref T lhs, ref T rhs)
 	{
 		T tmp;
@@ -14,11 +25,26 @@ public class GraphUtil {
 		rhs = tmp;
 	}
 	
+	/// <summary>
+	/// Initializes a new instance of the <see cref="GraphUtil"/> class.
+	/// </summary>
+	/// <param name='width'>
+	/// 生成される2Dテクスチャの幅
+	/// </param>
+	/// <param name='height'>
+	/// 生成される2Dテクスチャの高さ
+	/// </param>
 	public GraphUtil(int width, int height)
 	{
 		m_Texture2D = new Texture2D(width, height, TextureFormat.ARGB32, false);
 	}
 	
+	/// <summary>
+	/// 現在の Texture2D を取得します
+	/// </summary>
+	/// <returns>
+	/// 利用可能な Texture2D
+	/// </returns>
 	public Texture2D GetTexture2D()
 	{
 		if(m_Modified)
@@ -57,41 +83,49 @@ public class GraphUtil {
 	
 	public void DrawLine(Color color, Vector2 start, Vector2 end)
 	{
-		float x0 = start.x;
-		float y0 = start.y;
-		float x1 = end.x;
-		float y1 = end.y;
-		bool steep = Mathf.Abs(y1 - y0) > Mathf.Abs(x1 - x0);
-		if( steep )
-		{
-			Swap(ref x0, ref y0);
-			Swap(ref x1, ref y1);
-		}
-		float delta_x = Mathf.Abs(x1 - x0);
-		float delta_y = Mathf.Abs(y1 - y0);
-		float err = delta_x / 2.0f;
-		int y = (int)y0;
-		int inc = (x0 < x1) ? 1 :-1;
-		int ystep = (y0 < y1) ? 1: -1;
+		// http://ja.wikipedia.org/wiki/%E3%83%96%E3%83%AC%E3%82%BC%E3%83%B3%E3%83%8F%E3%83%A0%E3%81%AE%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0
+		// をそのまま持ってきた
+		int x0 = (int)start.x;
+		int y0 = (int)start.y;
+		int x1 = (int)end.x;
+		int y1 = (int)end.y;
 		
+		int dx = (int)Mathf.Abs(x1-x0);
+		int dy = (int)Mathf.Abs(y1-y0);
 		
-		for(int x = (int)x0; x < x1; x += inc)
+		int sx = -1;
+		if(x0 < x1)
 		{
-			if(steep)
+			sx = 1;
+		}
+		int sy = -1;
+		if(y0 < y1)
+		{
+			sy = 1;
+		}
+		
+		int err = dx - dy;
+		
+		while(true)
+		{
+			m_Texture2D.SetPixel(x0, y0, color);
+			if(x0 == x1 && y0 == y1)
 			{
-				m_Texture2D.SetPixel(y, x, color);
+				break;
 			}
-			else
+			float e2 = 2 * err;
+			if( e2 > -dy )
 			{
-				m_Texture2D.SetPixel(x, y, color);
+				err -= dy;
+				x0 += sx;
 			}
-			err -= delta_y;
-			if( err < 0.0f)
+			else if(e2 < dx)
 			{
-				y += ystep;
-				err += delta_x;
+				err += dx;
+				y0 += sy;
 			}
 		}
+		
 		m_Modified = true;
 	}
 	
